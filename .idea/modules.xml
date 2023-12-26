@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Counter_flet.iml" filepath="$PROJECT_DIR$/.idea/Counter_flet.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/flet_hakafa.iml" filepath="$PROJECT_DIR$/.idea/flet_hakafa.iml" />
     </modules>
   </component>
 </project>
