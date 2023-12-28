@@ -16,9 +16,10 @@ cursor.execute('''
 
 conn.commit()
 conn.close()
-
 # Function to add a customer to the 'customers' table
-def add_customer(phone_number, first_name, last_name, balance):
+
+
+def add_customer(phone_number, first_name, last_name, balance=0):
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
@@ -68,3 +69,36 @@ def query_balance(phone_number):
         return result[0]
     else:
         return None
+
+
+def is_customer(phone_number):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT balance FROM customers WHERE phone_number = ?', (phone_number,))
+    result = cursor.fetchone()
+
+    conn.close()
+
+    if result:
+        return True
+    else:
+        return f'This number is not available'
+
+
+def get_name(phone_number):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT first_name, last_name FROM customers WHERE phone_number = ?', (phone_number,))
+    result = cursor.fetchone()
+
+    conn.close()
+
+    return result
+
+
+if __name__ == "__main__":
+    #add_customer("0522837081", "Elazar", "Revach", 0)
+    #add_customer("0505577928", "Rami", "Revach", 0)
+    print(get_name("0505577928"))
