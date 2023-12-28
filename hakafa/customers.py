@@ -98,7 +98,26 @@ def get_name(phone_number):
     return result
 
 
+def customers_list():
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""SELECT * FROM customers""")
+    result = cursor.fetchall()
+
+    conn.close()
+
+    # Sort the result by the 'first_name' column
+    sorted_result = sorted(result, key=lambda x: x[1])  # Assumes 'first_name' is the second column (index 1)
+
+    return sorted_result
+
+
+
 if __name__ == "__main__":
     #add_customer("0522837081", "Elazar", "Revach", 0)
     #add_customer("0505577928", "Rami", "Revach", 0)
     print(get_name("0505577928"))
+    change_balance('0505577928', -20)
+    for i in customers_list():
+        print(list(i))

@@ -23,6 +23,7 @@ def main(page: ft.Page) -> None:
     button_submit_customer: ElevatedButton = ElevatedButton(text='הכנס לקוח חדש', width=200, disabled=True)
     button_list_customers: ElevatedButton = ElevatedButton(text='רשימת לקוחות')
     home_button: ft.IconButton = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
+    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT, on_click=page.logout())
 
     def validate(e: ControlEvent) -> None:
         if text_user_phone_number.value:
@@ -40,12 +41,38 @@ def main(page: ft.Page) -> None:
 
         page.update()
 
+    def start_page(e: ControlEvent) -> None:
+        page.clean()
+        page.add(
+            Row(
+                controls=[
+                    Column(
+                        [
+                            # text_user_first_name,
+                            # text_user_last_name,
+                            text_user_phone_number,
+                            checkbox_signup,
+                            button_submit
+                        ]
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
+            )
+        )
+
     def first_page(e: ControlEvent) -> None:
         #print(f"{text_user_first_name.value} {text_user_last_name.value}")
         #print(f"{text_user_phone_number.value}")
         if text_user_phone_number.value == '1111':
             page.clean()
             page.add(
+                Row(
+                    [
+                        home_button,
+                        main_button
+                    ],
+                    alignment=ft.MainAxisAlignment.END
+                ),
                 Row(
                     controls=[Text(value=f"ברוך הבא מנהל!", size=20)],
                     alignment=ft.MainAxisAlignment.CENTER
@@ -56,6 +83,13 @@ def main(page: ft.Page) -> None:
         else:
             page.clean()
             page.add(
+                Row(
+                    [
+                        home_button,
+                        main_button
+                    ],
+                    alignment=ft.MainAxisAlignment.END
+                ),
                 Row(
                     controls=[Text(value=f"ברוך הבא {text_user_first_name.value}", size=20)],
                     alignment=ft.MainAxisAlignment.CENTER
@@ -69,12 +103,13 @@ def main(page: ft.Page) -> None:
     def add_customer(e: ControlEvent) -> None:
         page.clean()
         page.add(
-        Row(
-            [
-                home_button
-            ],
-            alignment=ft.MainAxisAlignment.END
-        ),
+            Row(
+                [
+                    home_button,
+                    main_button
+                ],
+                alignment=ft.MainAxisAlignment.END
+            ),
             Row(
                 controls=[
                     Column(
@@ -92,20 +127,73 @@ def main(page: ft.Page) -> None:
         )
 
     def added(e: ControlEvent) -> None:
-        table.add_customer(add_user_phone_number.value, text_user_first_name, text_user_last_name)
+        table.add_customer(add_user_phone_number.value, text_user_first_name.value, text_user_last_name.value)
         page.clean()
         page.add(
             Row(
-                controls=[home_button],
-                alignment=ft.MainAxisAlignment.END,
+                [
+                    home_button,
+                    main_button
+                ],
+                alignment=ft.MainAxisAlignment.END
             ),
             Row(
                 controls=[
                     Column(
-                        [Text(value='נוסף בהצלחה!')]
+                        [Text(value=f'נוסף בהצלחה!\n{text_user_first_name.value}')],
+                        alignment=ft.MainAxisAlignment.CENTER
                     )
-                ]
+                ],alignment=ft.MainAxisAlignment.CENTER
             )
+        )
+
+    def customers_list(e: ControlEvent) -> None:
+        customer_lst = table.customers_list()
+
+        page.clean()
+        page.add(
+            Row(
+                [
+                    home_button,
+                    main_button
+                ],
+                alignment=ft.MainAxisAlignment.END
+            ),
+            Row(
+                [ft.Text(value="רשימת לקוחות", size=12)],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            ft.DataTable(
+                columns=[
+                    ft.DataColumn(ft.Text("First name")),
+                    ft.DataColumn(ft.Text("Last name")),
+                    ft.DataColumn(ft.Text("Age"), numeric=True),
+                ],
+                rows=[
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text("John")),
+                            ft.DataCell(ft.Text("Smith")),
+                            ft.DataCell(ft.Text("43")),
+                        ],
+                    ),
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text("Jack")),
+                            ft.DataCell(ft.Text("Brown")),
+                            ft.DataCell(ft.Text("19")),
+                        ],
+                    ),
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text("Alice")),
+                            ft.DataCell(ft.Text("Wong")),
+                            ft.DataCell(ft.Text("25")),
+                        ],
+                    ),
+                ],
+            )
+
         )
 
     checkbox_signup.on_change = validate
@@ -117,6 +205,8 @@ def main(page: ft.Page) -> None:
     button_add_costumer.on_click = add_customer
     button_submit_customer.on_click = added
     home_button.on_click = first_page
+    main_button.on_click = start_page
+    button_list_customers.on_click = customers_list
 
     # Render the page signup page
     page.add(
