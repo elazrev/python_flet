@@ -8,9 +8,12 @@ def main(page: ft.Page) -> None:
     page.title = 'HaKafa'
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.LIGHT
-    page.window_width = 400
-    page.window_height = 400
+    page.window_width = 410
+    page.window_height = 500
     page.window_resizable = False
+    page.scroll = ft.ScrollMode.ALWAYS
+
+
 
     # Setups Fields
     text_user_first_name: TextField = TextField(label='שם פרטי', text_align=ft.TextAlign.RIGHT, width=200)
@@ -176,6 +179,29 @@ def main(page: ft.Page) -> None:
             )
         )
 
+    def delete_customer(e):
+        print(f"{e.control.data['0']}")
+    def customer_page(e: ControlEvent, phone: str) -> None:
+        page.clean()
+        page.add(
+            Row(
+                [
+                    home_button,
+                    main_button
+                ],
+                alignment=ft.MainAxisAlignment.END
+            ),
+            Row(
+                controls=[
+                    Column(
+                        [Text(value=f'נוסף בהצלחה!\n')],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    )
+                ], alignment=ft.MainAxisAlignment.CENTER
+            )
+        )
+        page.update()
+
     def customers_list(e: ControlEvent) -> None:
         customer_lst = table.customers_list()
 
@@ -191,30 +217,55 @@ def main(page: ft.Page) -> None:
             Row(
                 [ft.Text(value="רשימת לקוחות", size=12)],
                 alignment=ft.MainAxisAlignment.CENTER,
-            ),
-            ft.DataTable(
-                columns=[
-                    ft.DataColumn(ft.Text("שם פרטי")),
-                    ft.DataColumn(ft.Text("שם משפחה")),
-                    ft.DataColumn(ft.Text("מאזן"), numeric=True),
-                ],
-            )
+            ), )
+        r = ft.DataTable(
+            column_spacing=5,
+            divider_thickness=3,
+            columns=[
+                ft.DataColumn(ft.Text("שם פרטי")),
+                ft.DataColumn(ft.Text("שם משפחה")),
+                ft.DataColumn(ft.Text("מאזן"), numeric=True),
+                ft.DataColumn(ft.Text("פעולות"), numeric=False),
+            ],
         )
+
+        page.add(Row([r], alignment=ft.MainAxisAlignment.CENTER))
+
         for customer in customer_lst:
-            page.add(
-                ft.DataTable(
-                    rows=[
-                        ft.DataRow(
-                            cells=[
-                                ft.DataCell(ft.Text(customer[1])),
-                                ft.DataCell(ft.Text(customer[2])),
-                                ft.DataCell(ft.Text(customer[3])),
-                            ],
+            phone = customer[0]
+            r.rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(customer[1])),
+                        ft.DataCell(ft.Text(customer[2])),
+                        ft.DataCell(ft.Text(customer[3], color=ft.colors.RED if int(customer[3]) < 0
+                        else ft.colors.GREEN)),
+                        ft.DataCell(
+                            Row(
+                                spacing=0,
+                                controls=[
+                                    ft.IconButton(
+                                        icon=ft.icons.CREATE_OUTLINED,
+                                        tooltip="עריכה",
+                                        #on_click=customer_page(e,(customer[0]).first()),
+                                        disabled=True,
+                                        icon_size=12,
+                                    ),
+                                    ft.IconButton(
+                                        ft.icons.DELETE_OUTLINE,
+                                        tooltip="מחק",
+                                        on_click=delete_customer,
+                                        icon_size=12,
+                                        icon_color=ft.colors.RED_200,
+                                    ),
+                                ]
+                            )
                         ),
-                    ],
-                ),
+                    ]
+                )
             )
-        page.update()
+
+            page.update()
 
     # checkbox_signup.on_change = validate
     text_user_first_name.on_change = validate_add
@@ -227,6 +278,7 @@ def main(page: ft.Page) -> None:
     home_button.on_click = first_page
     main_button.on_click = start_page
     button_list_customers.on_click = customers_list
+
 
     # Render the page signup page
     page.add(
