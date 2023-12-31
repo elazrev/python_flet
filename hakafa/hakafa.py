@@ -15,15 +15,18 @@ def main(page: ft.Page) -> None:
     # Setups Fields
     text_user_first_name: TextField = TextField(label='שם פרטי', text_align=ft.TextAlign.RIGHT, width=200)
     text_user_last_name: TextField = TextField(label='שם משפחה', text_align=ft.TextAlign.RIGHT, width=200)
-    text_user_phone_number: TextField = TextField(label='מספר טלפון', text_align=ft.TextAlign.RIGHT, width=200, keyboard_type=ft.KeyboardType.PHONE)
-    add_user_phone_number: TextField = TextField(label='מספר טלפון', text_align=ft.TextAlign.RIGHT, width=200, keyboard_type=ft.KeyboardType.PHONE)
-    checkbox_signup:  Checkbox = Checkbox(label='זה אני!', width=200, value=False, opacity=0.75, active_color=ft.colors.GREEN)
+    text_user_phone_number: TextField = TextField(label='מספר טלפון', text_align=ft.TextAlign.RIGHT, width=200,
+                                                  keyboard_type=ft.KeyboardType.PHONE)
+    add_user_phone_number: TextField = TextField(label='מספר טלפון', text_align=ft.TextAlign.RIGHT, width=200,
+                                                 keyboard_type=ft.KeyboardType.PHONE)
+    # checkbox_signup:  Checkbox = Checkbox(label='זה אני!', width=200, value=False, opacity=0.75, active_color=ft.colors.GREEN)
     button_submit: ElevatedButton = ElevatedButton(text='מעבר למאזן', width=200, disabled=True)
     button_add_costumer: ElevatedButton = ElevatedButton(text='לקוח חדש')
     button_submit_customer: ElevatedButton = ElevatedButton(text='הכנס לקוח חדש', width=200, disabled=True)
     button_list_customers: ElevatedButton = ElevatedButton(text='רשימת לקוחות')
     home_button: ft.IconButton = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
-    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT, on_click=page.logout())
+    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT,
+                                               on_click=page.logout())
 
     def validate(e: ControlEvent) -> None:
         if text_user_phone_number.value:
@@ -51,7 +54,7 @@ def main(page: ft.Page) -> None:
                             # text_user_first_name,
                             # text_user_last_name,
                             text_user_phone_number,
-                            checkbox_signup,
+                            # checkbox_signup,
                             button_submit
                         ]
                     )
@@ -61,8 +64,8 @@ def main(page: ft.Page) -> None:
         )
 
     def first_page(e: ControlEvent) -> None:
-        #print(f"{text_user_first_name.value} {text_user_last_name.value}")
-        #print(f"{text_user_phone_number.value}")
+        # print(f"{text_user_first_name.value} {text_user_last_name.value}")
+        # print(f"{text_user_phone_number.value}")
         if text_user_phone_number.value == '1111':
             page.clean()
             page.add(
@@ -81,24 +84,50 @@ def main(page: ft.Page) -> None:
 
             )
         else:
-            page.clean()
-            page.add(
-                Row(
-                    [
-                        home_button,
-                        main_button
-                    ],
-                    alignment=ft.MainAxisAlignment.END
-                ),
-                Row(
-                    controls=[Text(value=f"ברוך הבא {text_user_first_name.value}", size=20)],
-                    alignment=ft.MainAxisAlignment.CENTER
-                ),
-                Row(
-                    controls=[Text(value=f"המאזן שלך הינו", size=15, color=ft.colors.BLUE_800)],
-                    alignment=ft.MainAxisAlignment.CENTER
+            if table.get_name(text_user_phone_number.value):
+                phone = text_user_phone_number.value
+                page.clean()
+                page.add(
+                    Row(
+                        [
+                            home_button,
+                            main_button
+                        ],
+                        alignment=ft.MainAxisAlignment.END
+                    ),
+                    Row(
+                        controls=[Text(value=f"ברוך הבא {table.get_name(text_user_phone_number.value)[0]}", size=20)],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                    Row(
+                        controls=[Text(value=f"המאזן שלך הינו", size=15, color=ft.colors.BLUE_800)],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                    Row(
+                        controls=[Text(value=f"{table.get_name(text_user_phone_number.value)[2]}", size=15,
+                                       color=ft.colors.GREEN if table.get_name(text_user_phone_number.value)[2] >= 0
+                                       else ft.colors.RED)],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    )
                 )
-            )
+            else:
+                page.clean()
+                page.add(
+                    Row(
+                        controls=[
+                            Column(
+                                [
+                                    Text(
+                                        value="אינך מחובר למערכת, נסה שנית"
+                                    ),
+                                    main_button,
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    )
+                )
 
     def add_customer(e: ControlEvent) -> None:
         page.clean()
@@ -143,7 +172,7 @@ def main(page: ft.Page) -> None:
                         [Text(value=f'נוסף בהצלחה!\n{text_user_first_name.value}')],
                         alignment=ft.MainAxisAlignment.CENTER
                     )
-                ],alignment=ft.MainAxisAlignment.CENTER
+                ], alignment=ft.MainAxisAlignment.CENTER
             )
         )
 
@@ -165,38 +194,29 @@ def main(page: ft.Page) -> None:
             ),
             ft.DataTable(
                 columns=[
-                    ft.DataColumn(ft.Text("First name")),
-                    ft.DataColumn(ft.Text("Last name")),
-                    ft.DataColumn(ft.Text("Age"), numeric=True),
-                ],
-                rows=[
-                    ft.DataRow(
-                        cells=[
-                            ft.DataCell(ft.Text("John")),
-                            ft.DataCell(ft.Text("Smith")),
-                            ft.DataCell(ft.Text("43")),
-                        ],
-                    ),
-                    ft.DataRow(
-                        cells=[
-                            ft.DataCell(ft.Text("Jack")),
-                            ft.DataCell(ft.Text("Brown")),
-                            ft.DataCell(ft.Text("19")),
-                        ],
-                    ),
-                    ft.DataRow(
-                        cells=[
-                            ft.DataCell(ft.Text("Alice")),
-                            ft.DataCell(ft.Text("Wong")),
-                            ft.DataCell(ft.Text("25")),
-                        ],
-                    ),
+                    ft.DataColumn(ft.Text("שם פרטי")),
+                    ft.DataColumn(ft.Text("שם משפחה")),
+                    ft.DataColumn(ft.Text("מאזן"), numeric=True),
                 ],
             )
-
         )
+        for customer in customer_lst:
+            page.add(
+                ft.DataTable(
+                    rows=[
+                        ft.DataRow(
+                            cells=[
+                                ft.DataCell(ft.Text(customer[1])),
+                                ft.DataCell(ft.Text(customer[2])),
+                                ft.DataCell(ft.Text(customer[3])),
+                            ],
+                        ),
+                    ],
+                ),
+            )
+        page.update()
 
-    checkbox_signup.on_change = validate
+    # checkbox_signup.on_change = validate
     text_user_first_name.on_change = validate_add
     text_user_last_name.on_change = validate_add
     text_user_phone_number.on_change = validate
@@ -214,11 +234,11 @@ def main(page: ft.Page) -> None:
             controls=[
                 Column(
                     [
-                     #text_user_first_name,
-                     #text_user_last_name,
-                     text_user_phone_number,
-                     checkbox_signup,
-                     button_submit
+                        # text_user_first_name,
+                        # text_user_last_name,
+                        text_user_phone_number,
+                        # checkbox_signup,
+                        button_submit
                     ]
                 )
             ],
@@ -226,6 +246,6 @@ def main(page: ft.Page) -> None:
         )
     )
 
-if __name__ == "__main__":
-    ft.app(target=main) #, view=ft.AppView.WEB_BROWSER)
 
+if __name__ == "__main__":
+    ft.app(target=main)  # , view=ft.AppView.WEB_BROWSER)

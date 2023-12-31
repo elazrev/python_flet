@@ -90,7 +90,7 @@ def get_name(phone_number):
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
-    cursor.execute('SELECT first_name, last_name FROM customers WHERE phone_number = ?', (phone_number,))
+    cursor.execute('SELECT first_name, last_name, balance FROM customers WHERE phone_number = ?', (phone_number,))
     result = cursor.fetchone()
 
     conn.close()
