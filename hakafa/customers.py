@@ -109,6 +109,7 @@ def customers_list():
 
     # Sort the result by the 'first_name' column
     sorted_result = sorted(result, key=lambda x: x[1])  # Assumes 'first_name' is the second column (index 1)
+    result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3]} for i in sorted_result]
 
     return sorted_result
 
@@ -120,4 +121,5 @@ if __name__ == "__main__":
     print(get_name("0505577928"))
     change_balance('0505577928', -20)
     for i in customers_list():
-        print(list(i))
+        print(i)
+
