@@ -191,7 +191,7 @@ def main(page: ft.Page) -> None:
             print(e)
             print("Error")
 
-    def customer_page(e: ControlEvent, phone: str) -> None:
+    def customer_page(e: ControlEvent) -> None:
         page.clean()
         page.add(
             Row(
@@ -204,7 +204,15 @@ def main(page: ft.Page) -> None:
             Row(
                 controls=[
                     Column(
-                        [Text(value=f'נוסף בהצלחה!\n')],
+                        [
+                            Text(value=f'{e.control.data["first_name"]} {e.control.data["last_name"]}', size=20),
+                            Text(value=f'יתרה:', size=20),
+                            Text(value=f"{e.control.data['balance']}", size=15,
+                                 color=ft.colors.GREEN if e.control.data['balance'] >= 0
+                                 else ft.colors.RED),
+
+                        ],
+
                         alignment=ft.MainAxisAlignment.CENTER
                     )
                 ], alignment=ft.MainAxisAlignment.CENTER
@@ -243,10 +251,14 @@ def main(page: ft.Page) -> None:
 
         for customer in customer_lst:
             phone = customer['phone']
+
             r.rows.append(
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(customer['first_name'])),
+                        ft.DataCell(ft.TextButton(
+                            customer['first_name'],
+                            data=customer,
+                            on_click=customer_page)),
                         ft.DataCell(ft.Text(customer['last_name'])),
                         ft.DataCell(ft.Text(customer['balance'], color=ft.colors.RED if int(customer['balance']) < 0
                         else ft.colors.GREEN)),
@@ -260,6 +272,7 @@ def main(page: ft.Page) -> None:
                                         #on_click=customer_page(e,(customer[0]).first()),
                                         disabled=True,
                                         icon_size=12,
+                                        data=customer,
                                     ),
                                     ft.IconButton(
                                         ft.icons.DELETE_OUTLINE,
@@ -267,6 +280,7 @@ def main(page: ft.Page) -> None:
                                         on_click=delete_customer,
                                         icon_size=12,
                                         icon_color=ft.colors.RED_200,
+                                        data=customer,
                                     ),
                                 ]
                             )
@@ -274,7 +288,7 @@ def main(page: ft.Page) -> None:
                     ]
                 )
             )
-
+            print(e.control)
             page.update()
 
     # checkbox_signup.on_change = validate
