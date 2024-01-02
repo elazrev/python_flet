@@ -1,4 +1,5 @@
 import sqlite3
+import flet as ft
 
 # Function to create the 'customers' table
 conn = sqlite3.connect('customer_database.db')
@@ -111,7 +112,7 @@ def customers_list():
     sorted_result = sorted(result, key=lambda x: x[1])  # Assumes 'first_name' is the second column (index 1)
     result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3]} for i in sorted_result]
 
-    return sorted_result
+    return
 
 
 
