@@ -2,6 +2,7 @@ import flet as ft
 from flet import TextField, Checkbox, ElevatedButton, TextButton, Text, Row, Column
 from flet_core.control_event import ControlEvent
 import customers as table
+import time
 
 
 def main(page: ft.Page) -> None:
@@ -22,14 +23,14 @@ def main(page: ft.Page) -> None:
                                                   keyboard_type=ft.KeyboardType.PHONE)
     add_user_phone_number: TextField = TextField(label='מספר טלפון', text_align=ft.TextAlign.RIGHT, width=200,
                                                  keyboard_type=ft.KeyboardType.PHONE)
-    # checkbox_signup:  Checkbox = Checkbox(label='זה אני!', width=200, value=False, opacity=0.75, active_color=ft.colors.GREEN)
+
     button_submit: ElevatedButton = ElevatedButton(text='מעבר למאזן', width=200, disabled=True)
     button_add_costumer: ElevatedButton = ElevatedButton(text='לקוח חדש')
     button_submit_customer: ElevatedButton = ElevatedButton(text='הכנס לקוח חדש', width=200, disabled=True)
     button_list_customers: ElevatedButton = ElevatedButton(text='רשימת לקוחות')
-    home_button: ft.IconButton = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
-    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT,
-                                               on_click=page.logout())
+    home_button: ft.NavigationBar = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
+    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT)
+    list_button: ft.IconButton = ft.IconButton(icon=ft.icons.LIST_ALT_SHARP)
 
     def validate(e: ControlEvent) -> None:
         if text_user_phone_number.value:
@@ -67,15 +68,15 @@ def main(page: ft.Page) -> None:
         )
 
     def first_page(e: ControlEvent) -> None:
-        # print(f"{text_user_first_name.value} {text_user_last_name.value}")
-        # print(f"{text_user_phone_number.value}")
+
         if text_user_phone_number.value == '1111':
             page.clean()
             page.add(
                 Row(
                     [
                         home_button,
-                        main_button
+                        main_button,
+                        list_button
                     ],
                     alignment=ft.MainAxisAlignment.END
                 ),
@@ -138,7 +139,8 @@ def main(page: ft.Page) -> None:
             Row(
                 [
                     home_button,
-                    main_button
+                    main_button,
+                    list_button
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
@@ -165,7 +167,8 @@ def main(page: ft.Page) -> None:
             Row(
                 [
                     home_button,
-                    main_button
+                    main_button,
+                    list_button
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
@@ -178,6 +181,47 @@ def main(page: ft.Page) -> None:
                 ], alignment=ft.MainAxisAlignment.CENTER
             )
         )
+        time.sleep(2)
+        customers_list(e)
+
+
+
+    def delete_page(e):
+        page.clean()
+        page.add(
+            Row(
+                [
+                    home_button,
+                    main_button,
+                    list_button
+                ],
+                alignment=ft.MainAxisAlignment.END
+            ),
+            Row(
+                controls=[
+                    Row(
+                        [Text(value=f'האם ברצונך למחוק את\n'
+                                    f'{e.control.data["first_name"]} {e.control.data["last_name"]}')],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    )
+                ], alignment=ft.MainAxisAlignment.CENTER
+            ),
+            Row(
+                controls=[
+                    Row(
+                        [
+                            ElevatedButton(text='כן',
+                                           color=ft.colors.RED,
+                                           on_click=delete_customer,
+                                           data=e.control.data),
+                            ElevatedButton(text='בטל',
+                                           color=ft.colors.BLUE_800,
+                                           on_click=customers_list),
+                         ]
+                    )
+                ], alignment=ft.MainAxisAlignment.CENTER
+            )
+        )
 
     def delete_customer(e):
 
@@ -185,37 +229,70 @@ def main(page: ft.Page) -> None:
             print(f"you selected phone number = {e.control.data['phone']}")
             table.remove_customer(e.control.data['phone'])
             print("Successes")
-            page.update()
+            customers_list(e)
 
         except Exception as e:
             print(e)
             print("Error")
 
     def customer_page(e: ControlEvent) -> None:
+
+        text_balance = ft.TextField(value=e.control.data['balance'],
+                                    text_align=ft.TextAlign.RIGHT,
+                                    width=100,
+                                    color=ft.colors.GREEN if e.control.data['balance'] >= 0
+                                    else ft.colors.RED)
+
+        def minus_click(e):
+            text_balance.value = str(int(text_balance.value) - 1)
+            page.update()
+
+        def plus_click(e):
+            text_balance.value = str(int(text_balance.value) + 1)
+            page.update()
+
+        def done(e):
+            table.change_balance(phone_number=e.control.data['phone'], new_balance=text_balance.value)
+            customers_list(e)
+
+
+
         page.clean()
         page.add(
             Row(
                 [
                     home_button,
-                    main_button
+                    main_button,
+                    list_button
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
             Row(
+                controls=[Text(value=f"{e.control.data['first_name']}", size=20)],
+                alignment=ft.MainAxisAlignment.CENTER
+            ),
+            Row(
+                controls=[Text(value=f"יתרה", size=15, color=ft.colors.BLUE_800)],
+                alignment=ft.MainAxisAlignment.CENTER
+            ),
+            Row(
+                [
+                    ft.IconButton(ft.icons.REMOVE, on_click=minus_click, data=e.control.data),
+                    text_balance,
+                    ft.IconButton(ft.icons.ADD, on_click=plus_click, data=e.control.data),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            Row(
                 controls=[
-                    Column(
-                        [
-                            Text(value=f'{e.control.data["first_name"]} {e.control.data["last_name"]}', size=20),
-                            Text(value=f'יתרה:', size=20),
-                            Text(value=f"{e.control.data['balance']}", size=15,
-                                 color=ft.colors.GREEN if e.control.data['balance'] >= 0
-                                 else ft.colors.RED),
-
-                        ],
-
-                        alignment=ft.MainAxisAlignment.CENTER
-                    )
-                ], alignment=ft.MainAxisAlignment.CENTER
+                    ft.ElevatedButton(text="סיום",
+                                      on_click=done,
+                                      color=ft.colors.WHITE,
+                                      bgcolor=ft.colors.GREEN_300,
+                                      data=e.control.data,
+                                      opacity=75)
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
             )
         )
         page.update()
@@ -228,12 +305,13 @@ def main(page: ft.Page) -> None:
             Row(
                 [
                     home_button,
-                    main_button
+                    main_button,
+                    list_button
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
             Row(
-                [ft.Text(value="רשימת לקוחות", size=12)],
+                [ft.Text(value="רשימת לקוחות", size=20)],
                 alignment=ft.MainAxisAlignment.CENTER,
             ), )
         r = ft.DataTable(
@@ -277,7 +355,7 @@ def main(page: ft.Page) -> None:
                                     ft.IconButton(
                                         ft.icons.DELETE_OUTLINE,
                                         tooltip="מחק",
-                                        on_click=delete_customer,
+                                        on_click=delete_page,
                                         icon_size=12,
                                         icon_color=ft.colors.RED_200,
                                         data=customer,
@@ -288,7 +366,6 @@ def main(page: ft.Page) -> None:
                     ]
                 )
             )
-            print(e.control)
             page.update()
 
     # checkbox_signup.on_change = validate
@@ -302,6 +379,7 @@ def main(page: ft.Page) -> None:
     home_button.on_click = first_page
     main_button.on_click = start_page
     button_list_customers.on_click = customers_list
+    list_button.on_click = customers_list
 
 
     # Render the page signup page
