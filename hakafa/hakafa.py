@@ -180,7 +180,17 @@ def main(page: ft.Page) -> None:
         )
 
     def delete_customer(e):
-        print(f"{e.control.data['0']}")
+
+        try:
+            print(f"you selected phone number = {e.control.data['phone']}")
+            table.remove_customer(e.control.data['phone'])
+            print("Successes")
+            page.update()
+
+        except Exception as e:
+            print(e)
+            print("Error")
+
     def customer_page(e: ControlEvent, phone: str) -> None:
         page.clean()
         page.add(
@@ -232,13 +242,13 @@ def main(page: ft.Page) -> None:
         page.add(Row([r], alignment=ft.MainAxisAlignment.CENTER))
 
         for customer in customer_lst:
-            phone = customer[0]
+            phone = customer['phone']
             r.rows.append(
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(customer[1])),
-                        ft.DataCell(ft.Text(customer[2])),
-                        ft.DataCell(ft.Text(customer[3], color=ft.colors.RED if int(customer[3]) < 0
+                        ft.DataCell(ft.Text(customer['first_name'])),
+                        ft.DataCell(ft.Text(customer['last_name'])),
+                        ft.DataCell(ft.Text(customer['balance'], color=ft.colors.RED if int(customer['balance']) < 0
                         else ft.colors.GREEN)),
                         ft.DataCell(
                             Row(
