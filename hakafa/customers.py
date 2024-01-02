@@ -1,4 +1,6 @@
 import sqlite3
+import json
+from datetime import datetime
 
 # Function to create the 'customers' table
 conn = sqlite3.connect('customer_database.db')
@@ -10,7 +12,8 @@ cursor.execute('''
         phone_number TEXT PRIMARY KEY,
         first_name TEXT,
         last_name TEXT,
-        balance REAL
+        balance JSON,
+        comments JSON 
     )
 ''')
 
@@ -19,17 +22,21 @@ conn.close()
 # Function to add a customer to the 'customers' table
 
 
-def add_customer(phone_number, first_name, last_name, balance=0):
+def add_customer(phone_number, first_name, last_name,):
+    balance = {"balance": 0, "update_date": None}
+    balance_json = json.dumps(balance)
+
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
     cursor.execute('''
         INSERT INTO customers (phone_number, first_name, last_name, balance)
         VALUES (?, ?, ?, ?)
-    ''', (phone_number, first_name, last_name, balance))
+    ''', (phone_number, first_name, last_name, balance_json))
 
     conn.commit()
     conn.close()
+
 
 # Function to remove a customer from the 'customers' table
 def remove_customer(phone_number):
@@ -41,8 +48,11 @@ def remove_customer(phone_number):
     conn.commit()
     conn.close()
 
+
 # Function to change the balance of a customer
 def change_balance(phone_number, new_balance):
+    now = datetime.now()
+    update_balance = json.dumps({'balance': new_balance, 'update_date': f"{datetime.now().strftime('%d-%m-%y, %H:%M')}"})
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
@@ -50,10 +60,11 @@ def change_balance(phone_number, new_balance):
         UPDATE customers
         SET balance = ?
         WHERE phone_number = ?
-    ''', (new_balance, phone_number))
+    ''', (update_balance, phone_number))
 
     conn.commit()
     conn.close()
+
 
 # Function to query the balance by phone number
 def query_balance(phone_number):
@@ -97,6 +108,18 @@ def get_name(phone_number):
 
     return result
 
+def get_balance(phone_number):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT balance FROM customers WHERE phone_number = ?', (phone_number,))
+    result = cursor.fetchone()[0]
+
+    conn.close()
+
+    return json.loads(result)
+
+
 
 def customers_list():
     conn = sqlite3.connect('customer_database.db')
@@ -114,12 +137,27 @@ def customers_list():
     return result_dict
 
 
+def add_comment(phone_number):
+    pass
+
+
+def edit_comment(phone_number, index):
+    pass
+
+
+def delete_comment(phone_number):
+    pass
+
 
 if __name__ == "__main__":
-    #add_customer("0522837081", "Elazar", "Revach", 0)
-    #add_customer("0505577928", "Rami", "Revach", 0)
+    #add_customer("0522837081", "Elazar", "Revach")
+    #add_customer("0505577928", "Rami", "Revach")
     print(get_name("0505577928"))
     change_balance('0505577928', -20)
-    for i in customers_list():
-        print(i)
+    print(json.loads(get_name('0522837081')[2]))
+    print(json.loads(get_name('0522837081')[2]))
+    print(json.loads(get_name('0505577928')[2])["balance"])
+    print(get_balance('0522837081'))
+    print(get_balance('0505577928'))
+    print(customers_list())
 

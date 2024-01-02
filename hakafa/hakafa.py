@@ -3,6 +3,7 @@ from flet import TextField, Checkbox, ElevatedButton, TextButton, Text, Row, Col
 from flet_core.control_event import ControlEvent
 import customers as table
 import time
+import json
 
 
 def main(page: ft.Page) -> None:
@@ -28,9 +29,12 @@ def main(page: ft.Page) -> None:
     button_add_costumer: ElevatedButton = ElevatedButton(text='לקוח חדש')
     button_submit_customer: ElevatedButton = ElevatedButton(text='הכנס לקוח חדש', width=200, disabled=True)
     button_list_customers: ElevatedButton = ElevatedButton(text='רשימת לקוחות')
-    home_button: ft.NavigationBar = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
+    home_button: ft.IconButton = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
     main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT)
     list_button: ft.IconButton = ft.IconButton(icon=ft.icons.LIST_ALT_SHARP)
+    request_center: ft.ElevatedButton = ft.ElevatedButton(text='בקשות', width=200)
+    send_request_btn: ElevatedButton = ft.ElevatedButton(text='בקשה חדשה', width=100,)
+
 
     def validate(e: ControlEvent) -> None:
         if text_user_phone_number.value:
@@ -55,10 +59,7 @@ def main(page: ft.Page) -> None:
                 controls=[
                     Column(
                         [
-                            # text_user_first_name,
-                            # text_user_last_name,
                             text_user_phone_number,
-                            # checkbox_signup,
                             button_submit
                         ]
                     )
@@ -84,12 +85,14 @@ def main(page: ft.Page) -> None:
                     controls=[Text(value=f"ברוך הבא מנהל!", size=20)],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),
-                Row(controls=[button_add_costumer, button_list_customers], alignment=ft.MainAxisAlignment.CENTER)
+                Row(controls=[button_add_costumer, button_list_customers], alignment=ft.MainAxisAlignment.CENTER),
+                Row(controls=[request_center], alignment=ft.MainAxisAlignment.CENTER),
+
 
             )
         else:
             if table.get_name(text_user_phone_number.value):
-                phone = text_user_phone_number.value
+                balance = table.get_balance(text_user_phone_number.value)["balance"]
                 page.clean()
                 page.add(
                     Row(
@@ -108,10 +111,45 @@ def main(page: ft.Page) -> None:
                         alignment=ft.MainAxisAlignment.CENTER
                     ),
                     Row(
-                        controls=[Text(value=f"{table.get_name(text_user_phone_number.value)[2]}", size=15,
-                                       color=ft.colors.GREEN if table.get_name(text_user_phone_number.value)[2] >= 0
+                        controls=[Text(value=f"{table.get_balance(text_user_phone_number.value)['balance']}", size=15,
+                                       color=ft.colors.GREEN if int(table.get_balance(text_user_phone_number.value)["balance"]) >= 0
                                        else ft.colors.RED)],
                         alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                    Row(
+                        controls=[Text(value=f"תאריך עריכה", size=10)],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                    Row(
+                        controls=[Text(value=f"{table.get_balance(text_user_phone_number.value)['update_date']}", size=10)],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                    ft.Card(
+                        content=ft.Container(
+                            content=ft.Column(
+                                [
+                                    ft.ListTile(
+                                        leading=ft.Icon(ft.icons.MESSAGE),
+                                        title=ft.Text("בקשות לתשלום"),
+                                    ),
+                                    ft.Row(
+                                        [
+                                         ft.TextField(label='הכנס בקשה חדשה', text_align=ft.TextAlign.RIGHT),
+                                         ],
+                                        alignment=ft.MainAxisAlignment.END,
+                                    ),
+                                    ft.Row(
+                                        [
+                                            ft.ElevatedButton(text='שלח', bgcolor=ft.colors.GREEN_300),
+                                            ft.ElevatedButton(text='בקשות פתוחות', bgcolor=ft.colors.YELLOW_600),
+                                        ],
+                                        alignment=ft.MainAxisAlignment.END,
+                                    ),
+                                ]
+                            ),
+                            width=400,
+                            padding=10,
+                        )
                     )
                 )
             else:
@@ -237,10 +275,15 @@ def main(page: ft.Page) -> None:
 
     def customer_page(e: ControlEvent) -> None:
 
-        text_balance = ft.TextField(value=e.control.data['balance'],
+        balance = json.loads(e.control.data['balance'])['balance']
+        update_date = json.loads(e.control.data['balance'])['update_date']
+        if update_date is None:
+            update_date = "לא נערך"
+
+        text_balance = ft.TextField(value=balance,
                                     text_align=ft.TextAlign.RIGHT,
                                     width=100,
-                                    color=ft.colors.GREEN if e.control.data['balance'] >= 0
+                                    color=ft.colors.GREEN if int(balance) >= 0
                                     else ft.colors.RED)
 
         def minus_click(e):
@@ -254,8 +297,6 @@ def main(page: ft.Page) -> None:
         def done(e):
             table.change_balance(phone_number=e.control.data['phone'], new_balance=text_balance.value)
             customers_list(e)
-
-
 
         page.clean()
         page.add(
@@ -276,6 +317,12 @@ def main(page: ft.Page) -> None:
                 alignment=ft.MainAxisAlignment.CENTER
             ),
             Row(
+                controls=[
+                    Text(f"נערך לאחרונה ב {update_date}")
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
+            ),
+            Row(
                 [
                     ft.IconButton(ft.icons.REMOVE, on_click=minus_click, data=e.control.data),
                     text_balance,
@@ -293,7 +340,7 @@ def main(page: ft.Page) -> None:
                                       opacity=75)
                 ],
                 alignment=ft.MainAxisAlignment.CENTER
-            )
+            ),
         )
         page.update()
 
@@ -329,6 +376,7 @@ def main(page: ft.Page) -> None:
 
         for customer in customer_lst:
             phone = customer['phone']
+            balance = table.get_balance(phone)['balance']
 
             r.rows.append(
                 ft.DataRow(
@@ -338,7 +386,7 @@ def main(page: ft.Page) -> None:
                             data=customer,
                             on_click=customer_page)),
                         ft.DataCell(ft.Text(customer['last_name'])),
-                        ft.DataCell(ft.Text(customer['balance'], color=ft.colors.RED if int(customer['balance']) < 0
+                        ft.DataCell(ft.Text(balance, color=ft.colors.RED if int(balance) < 0
                         else ft.colors.GREEN)),
                         ft.DataCell(
                             Row(
