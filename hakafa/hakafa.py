@@ -14,6 +14,8 @@ def main(page: ft.Page) -> None:
     page.window_height = 500
     page.window_resizable = False
     page.scroll = ft.ScrollMode.ALWAYS
+    page.rtl = True
+
 
 
 
@@ -29,12 +31,19 @@ def main(page: ft.Page) -> None:
     button_add_costumer: ElevatedButton = ElevatedButton(text='לקוח חדש')
     button_submit_customer: ElevatedButton = ElevatedButton(text='הכנס לקוח חדש', width=200, disabled=True)
     button_list_customers: ElevatedButton = ElevatedButton(text='רשימת לקוחות')
-    home_button: ft.IconButton = ft.IconButton(icon=ft.icons.HOME, icon_color=ft.colors.CYAN)
-    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT)
-    list_button: ft.IconButton = ft.IconButton(icon=ft.icons.LIST_ALT_SHARP)
+    home_button: ft.IconButton = ft.IconButton(icon=ft.icons.HOME, disabled=True)
+    main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT, tooltip='exit')
+    list_button: ft.IconButton = ft.IconButton(icon=ft.icons.LIST_ALT_SHARP, disabled=True)
     request_center: ft.ElevatedButton = ft.ElevatedButton(text='בקשות', width=200)
     send_request_btn: ElevatedButton = ft.ElevatedButton(text='בקשה חדשה', width=100,)
 
+
+    def exit_btn(e):
+        text_user_phone_number = None
+        list_button.disabled = True
+        home_button.disabled = True
+        home_button.icon_color = None
+        start_page(e)
 
     def validate(e: ControlEvent) -> None:
         if text_user_phone_number.value:
@@ -69,15 +78,16 @@ def main(page: ft.Page) -> None:
         )
 
     def first_page(e: ControlEvent) -> None:
+        if text_user_phone_number:
+            home_button.disabled = False
+            home_button.icon_color = ft.colors.CYAN
 
         if text_user_phone_number.value == '1111':
+            list_button.disabled = False
             page.clean()
             page.add(
                 Row(
                     [
-                        home_button,
-                        main_button,
-                        list_button
                     ],
                     alignment=ft.MainAxisAlignment.END
                 ),
@@ -97,8 +107,6 @@ def main(page: ft.Page) -> None:
                 page.add(
                     Row(
                         [
-                            home_button,
-                            main_button
                         ],
                         alignment=ft.MainAxisAlignment.END
                     ),
@@ -136,14 +144,14 @@ def main(page: ft.Page) -> None:
                                         [
                                          ft.TextField(label='הכנס בקשה חדשה', text_align=ft.TextAlign.RIGHT),
                                          ],
-                                        alignment=ft.MainAxisAlignment.END,
+                                        alignment=ft.MainAxisAlignment.CENTER,
                                     ),
                                     ft.Row(
                                         [
                                             ft.ElevatedButton(text='שלח', bgcolor=ft.colors.GREEN_300),
                                             ft.ElevatedButton(text='בקשות פתוחות', bgcolor=ft.colors.YELLOW_600),
                                         ],
-                                        alignment=ft.MainAxisAlignment.END,
+                                        alignment=ft.MainAxisAlignment.CENTER,
                                     ),
                                 ]
                             ),
@@ -153,6 +161,8 @@ def main(page: ft.Page) -> None:
                     )
                 )
             else:
+                home_button.disabled = True
+                home_button.icon_color = None
                 page.clean()
                 page.add(
                     Row(
@@ -176,9 +186,6 @@ def main(page: ft.Page) -> None:
         page.add(
             Row(
                 [
-                    home_button,
-                    main_button,
-                    list_button
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
@@ -204,9 +211,6 @@ def main(page: ft.Page) -> None:
         page.add(
             Row(
                 [
-                    home_button,
-                    main_button,
-                    list_button
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
@@ -229,9 +233,7 @@ def main(page: ft.Page) -> None:
         page.add(
             Row(
                 [
-                    home_button,
-                    main_button,
-                    list_button
+
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
@@ -302,9 +304,7 @@ def main(page: ft.Page) -> None:
         page.add(
             Row(
                 [
-                    home_button,
-                    main_button,
-                    list_button
+
                 ],
                 alignment=ft.MainAxisAlignment.END
             ),
@@ -345,22 +345,28 @@ def main(page: ft.Page) -> None:
         page.update()
 
     def customers_list(e: ControlEvent) -> None:
+
+        search_bar = TextField(label='חיפוש', text_size=13)
+
         customer_lst = table.customers_list()
 
         page.clean()
         page.add(
             Row(
-                [
-                    home_button,
-                    main_button,
-                    list_button
-                ],
-                alignment=ft.MainAxisAlignment.END
-            ),
-            Row(
                 [ft.Text(value="רשימת לקוחות", size=20)],
                 alignment=ft.MainAxisAlignment.CENTER,
-            ), )
+            ),
+            Row(
+                [
+                    Column(
+                        [search_bar]
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
+                )
+            )
+
+
         r = ft.DataTable(
             column_spacing=5,
             divider_thickness=3,
@@ -425,10 +431,31 @@ def main(page: ft.Page) -> None:
     button_add_costumer.on_click = add_customer
     button_submit_customer.on_click = added
     home_button.on_click = first_page
-    main_button.on_click = start_page
+    main_button.on_click = exit_btn
     button_list_customers.on_click = customers_list
     list_button.on_click = customers_list
 
+
+    #NavBar
+    page.appbar = ft.AppBar(
+        leading=main_button,
+        leading_width=40,
+        title=ft.Text("הקפה בקפה"),
+        center_title=False,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        actions=[
+            list_button,
+            home_button,
+            ft.PopupMenuButton(
+                items=[
+                    ft.PopupMenuItem(text="אודותינו"),
+                    ft.PopupMenuItem(),  # divider
+                    ft.PopupMenuItem(text="פריט"),
+                ],
+
+            ),
+        ],
+    )
 
     # Render the page signup page
     page.add(

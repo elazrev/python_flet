@@ -136,6 +136,26 @@ def customers_list():
 
     return result_dict
 
+def search_customer_partial(query):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    # Use a wildcard '%' to match any characters before or after the query
+    cursor.execute('''
+        SELECT phone_number, first_name, last_name, balance
+        FROM customers
+        WHERE phone_number LIKE ? OR first_name LIKE ? OR last_name LIKE ?
+    ''', ('%' + query + '%', '%' + query + '%', '%' + query + '%'))
+
+    result = cursor.fetchall()
+
+    conn.close()
+
+    result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3]} for i in result]
+
+    return result_dict
+
+
 
 def add_comment(phone_number):
     pass
