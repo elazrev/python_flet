@@ -101,7 +101,7 @@ def get_name(phone_number):
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
-    cursor.execute('SELECT first_name, last_name, balance FROM customers WHERE phone_number = ?', (phone_number,))
+    cursor.execute('SELECT first_name, last_name, balance, comments  FROM customers WHERE phone_number = ?', (phone_number,))
     result = cursor.fetchone()
 
     conn.close()
@@ -132,7 +132,7 @@ def customers_list():
 
     # Sort the result by the 'first_name' column
     sorted_result = sorted(result, key=lambda x: x[1])  # Assumes 'first_name' is the second column (index 1)
-    result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3]} for i in sorted_result]
+    result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3], 'comments': i[4]}for i in sorted_result]
 
     return result_dict
 
@@ -156,28 +156,118 @@ def search_customer_partial(query):
     return result_dict
 
 
+def add_comment(phone_number, comment_text):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
 
-def add_comment(phone_number):
-    pass
+    # Fetch existing comments for the customer
+    cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
+    result = cursor.fetchone()
+
+    if result and result[0] is not None:
+        existing_comments = json.loads(result[0])
+    else:
+        existing_comments = []
+
+    # Add the new comment with timestamp
+    new_comment = {
+        'text': comment_text,
+        'timestamp': datetime.now().strftime('%d-%m-%y, %H:%M')
+    }
+    existing_comments.append(new_comment)
+
+    # Update the comments in the database
+    cursor.execute('''
+        UPDATE customers
+        SET comments = ?
+        WHERE phone_number = ?
+    ''', (json.dumps(existing_comments), phone_number))
+
+    conn.commit()
+    conn.close()
 
 
-def edit_comment(phone_number, index):
-    pass
+def edit_comment(phone_number, index, new_text):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    # Fetch existing comments for the customer
+    cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
+    existing_comments = json.loads(cursor.fetchone()[0]) if cursor.fetchone() else []
+
+    # Check if the index is valid
+    if 0 <= index < len(existing_comments):
+        # Edit the comment with the new text and update timestamp
+        existing_comments[index]['text'] = new_text
+        existing_comments[index]['timestamp'] = datetime.now().strftime('%d-%m-%y, %H:%M')
+
+        # Update the comments in the database
+        cursor.execute('''
+            UPDATE customers
+            SET comments = ?
+            WHERE phone_number = ?
+        ''', (json.dumps(existing_comments), phone_number))
+
+        conn.commit()
+    else:
+        print("Invalid comment index.")
+
+    conn.close()
+
+def delete_comment(phone_number, index):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    # Fetch existing comments for the customer
+    cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
+    existing_comments = json.loads(cursor.fetchone()[0]) if cursor.fetchone() else []
+
+    # Check if the index is valid
+    if 0 <= index < len(existing_comments):
+        # Remove the comment at the specified index
+        deleted_comment = existing_comments.pop(index)
+
+        # Update the comments in the database
+        cursor.execute('''
+            UPDATE customers
+            SET comments = ?
+            WHERE phone_number = ?
+        ''', (json.dumps(existing_comments), phone_number))
+
+        conn.commit()
+        conn.close()
+
+        return deleted_comment
+    else:
+        print("Invalid comment index.")
+        return None
 
 
-def delete_comment(phone_number):
-    pass
+
+def customer_comment_status(phone_number):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    # Fetch existing comments for the customer
+    cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
+    existing_comments = json.loads(cursor.fetchone()[0]) if cursor.fetchone() else []
+
+    conn.close()
+
+    return len(existing_comments) > 0
+
 
 
 if __name__ == "__main__":
     #add_customer("0522837081", "Elazar", "Revach")
     #add_customer("0505577928", "Rami", "Revach")
-    print(get_name("0505577928"))
+    """print(get_name("0505577928"))
     change_balance('0505577928', -20)
     print(json.loads(get_name('0522837081')[2]))
     print(json.loads(get_name('0522837081')[2]))
     print(json.loads(get_name('0505577928')[2])["balance"])
     print(get_balance('0522837081'))
-    print(get_balance('0505577928'))
-    print(customers_list())
-
+    print(get_balance('0505577928'))"""
+    #for i in customers_list():
+    #    print(i)
+    customer_comment_status("0522837081")

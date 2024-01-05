@@ -35,7 +35,11 @@ def main(page: ft.Page) -> None:
     main_button: ft.IconButton = ft.IconButton(icon=ft.icons.EXIT_TO_APP_SHARP, icon_color=ft.colors.RED_ACCENT, tooltip='exit')
     list_button: ft.IconButton = ft.IconButton(icon=ft.icons.LIST_ALT_SHARP, disabled=True)
     request_center: ft.ElevatedButton = ft.ElevatedButton(text='בקשות', width=200)
-    send_request_btn: ElevatedButton = ft.ElevatedButton(text='בקשה חדשה', width=100,)
+    text_send_request: TextField = ft.TextField(label="בקשה חדשה", text_align=ft.TextAlign.RIGHT, width=200)
+    send_request_btn: ElevatedButton = ft.ElevatedButton(text='שלח',
+                                                         bgcolor=ft.colors.GREEN_300,
+                                                         disabled=True,
+                                                         )
 
 
     def exit_btn(e):
@@ -61,8 +65,31 @@ def main(page: ft.Page) -> None:
 
         page.update()
 
+    def validate_request(e: ControlEvent) -> None:
+        if text_send_request.value:
+            if len(text_send_request.value) >= 2:
+                send_request_btn.disabled = False
+                send_request_btn.data = text_send_request.value
+
+        page.update()
+
+    def request_list_dialog(e: ControlEvent) -> None:
+        dlg = ft.AlertDialog(
+            title=ft.Text("Hello, you!"), on_dismiss=lambda e: print("Dialog dismissed!"))
+
+        def open_dlg(e):
+            page.dialog = dlg
+            dlg.open = True
+            page.update()
+
+
+
+
+
+
     def start_page(e: ControlEvent) -> None:
         page.clean()
+
         page.add(
             Row(
                 controls=[
@@ -73,7 +100,8 @@ def main(page: ft.Page) -> None:
                         ]
                     )
                 ],
-                alignment=ft.MainAxisAlignment.CENTER
+                alignment=ft.MainAxisAlignment.CENTER,
+
             )
         )
 
@@ -142,14 +170,14 @@ def main(page: ft.Page) -> None:
                                     ),
                                     ft.Row(
                                         [
-                                         ft.TextField(label='הכנס בקשה חדשה', text_align=ft.TextAlign.RIGHT),
+                                         text_send_request,
                                          ],
                                         alignment=ft.MainAxisAlignment.CENTER,
                                     ),
                                     ft.Row(
                                         [
-                                            ft.ElevatedButton(text='שלח', bgcolor=ft.colors.GREEN_300),
-                                            ft.ElevatedButton(text='בקשות פתוחות', bgcolor=ft.colors.YELLOW_600),
+                                            send_request_btn,
+                                            ft.ElevatedButton(text='בקשות פתוחות', bgcolor=ft.colors.YELLOW_600, on_click=request_list_dialog),
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,
                                     ),
@@ -180,6 +208,12 @@ def main(page: ft.Page) -> None:
                         alignment=ft.MainAxisAlignment.CENTER
                     )
                 )
+
+    def send_request(e):
+        new_comment = e.control.data
+        print(new_comment)
+        table.add_comment(text_user_phone_number.value, new_comment)
+        print('done!')
 
     def add_customer(e: ControlEvent) -> None:
         page.clean()
@@ -434,6 +468,8 @@ def main(page: ft.Page) -> None:
     main_button.on_click = exit_btn
     button_list_customers.on_click = customers_list
     list_button.on_click = customers_list
+    text_send_request.on_change = validate_request
+    send_request_btn.on_click = send_request
 
 
     #NavBar
