@@ -15,6 +15,10 @@ def main(page: ft.Page) -> None:
     page.window_resizable = False
     page.scroll = ft.ScrollMode.ALWAYS
     page.rtl = True
+    page.snack_bar = ft.SnackBar(
+        content=ft.Text("Hello, world!"),
+        action="Alright!",
+    )
 
 
 
@@ -70,22 +74,7 @@ def main(page: ft.Page) -> None:
             if len(text_send_request.value) >= 2:
                 send_request_btn.disabled = False
                 send_request_btn.data = text_send_request.value
-
-        page.update()
-
-    def request_list_dialog(e: ControlEvent) -> None:
-        dlg = ft.AlertDialog(
-            title=ft.Text("Hello, you!"), on_dismiss=lambda e: print("Dialog dismissed!"))
-
-        def open_dlg(e):
-            page.dialog = dlg
-            dlg.open = True
             page.update()
-
-
-
-
-
 
     def start_page(e: ControlEvent) -> None:
         page.clean()
@@ -177,9 +166,10 @@ def main(page: ft.Page) -> None:
                                     ft.Row(
                                         [
                                             send_request_btn,
-                                            ft.ElevatedButton(text='בקשות פתוחות', bgcolor=ft.colors.YELLOW_600, on_click=request_list_dialog),
+                                            #request_list_dialog,
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,
+                                        vertical_alignment=ft.CrossAxisAlignment.CENTER
                                     ),
                                 ]
                             ),
@@ -205,7 +195,8 @@ def main(page: ft.Page) -> None:
                                 alignment=ft.MainAxisAlignment.CENTER
                             )
                         ],
-                        alignment=ft.MainAxisAlignment.CENTER
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER
                     )
                 )
 
@@ -260,8 +251,6 @@ def main(page: ft.Page) -> None:
         time.sleep(2)
         customers_list(e)
 
-
-
     def delete_page(e):
         page.clean()
         page.add(
@@ -313,6 +302,11 @@ def main(page: ft.Page) -> None:
 
         balance = json.loads(e.control.data['balance'])['balance']
         update_date = json.loads(e.control.data['balance'])['update_date']
+        done_btn = ft.ElevatedButton(text="סיום",
+                                      color=ft.colors.WHITE,
+                                      bgcolor=ft.colors.GREEN_300,
+                                      data=e.control.data,
+                                      opacity=75)
         if update_date is None:
             update_date = "לא נערך"
 
@@ -331,8 +325,20 @@ def main(page: ft.Page) -> None:
             page.update()
 
         def done(e):
-            table.change_balance(phone_number=e.control.data['phone'], new_balance=text_balance.value)
-            customers_list(e)
+            try:
+
+                int(text_balance.value) * 1
+                table.change_balance(phone_number=e.control.data['phone'], new_balance=text_balance.value)
+                customers_list(e)
+            except Exception as er:
+                page.snack_bar = ft.SnackBar(
+                    content=Text('משהו השתבש, נסה שוב'),
+                    open=True
+                )
+                error_msg = "ערך לא חוקי!", er
+                print(error_msg)
+                text_balance.value = balance
+                page.update()
 
         page.clean()
         page.add(
@@ -343,7 +349,11 @@ def main(page: ft.Page) -> None:
                 alignment=ft.MainAxisAlignment.END
             ),
             Row(
-                controls=[Text(value=f"{e.control.data['first_name']}", size=20)],
+                controls=[Text(value=f"{e.control.data['first_name']} {e.control.data['last_name']}", size=20)],
+                alignment=ft.MainAxisAlignment.CENTER
+            ),
+            Row(
+                controls=[Text(value=f"{e.control.data['phone']}", size=14, color=ft.colors.GREY)],
                 alignment=ft.MainAxisAlignment.CENTER
             ),
             Row(
@@ -366,16 +376,12 @@ def main(page: ft.Page) -> None:
             ),
             Row(
                 controls=[
-                    ft.ElevatedButton(text="סיום",
-                                      on_click=done,
-                                      color=ft.colors.WHITE,
-                                      bgcolor=ft.colors.GREEN_300,
-                                      data=e.control.data,
-                                      opacity=75)
+                    done_btn
                 ],
                 alignment=ft.MainAxisAlignment.CENTER
             ),
         )
+        done_btn.on_click = done
         page.update()
 
     def customers_list(e: ControlEvent) -> None:
@@ -432,6 +438,7 @@ def main(page: ft.Page) -> None:
                             Row(
                                 spacing=0,
                                 controls=[
+
                                     ft.IconButton(
                                         icon=ft.icons.CREATE_OUTLINED,
                                         tooltip="עריכה",

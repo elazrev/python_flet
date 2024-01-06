@@ -28,11 +28,15 @@ def add_customer(phone_number, first_name, last_name,):
 
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
-
-    cursor.execute('''
-        INSERT INTO customers (phone_number, first_name, last_name, balance)
-        VALUES (?, ?, ?, ?)
-    ''', (phone_number, first_name, last_name, balance_json))
+    try:
+        cursor.execute('''
+            INSERT INTO customers (phone_number, first_name, last_name, balance)
+            VALUES (?, ?, ?, ?)
+        ''', (phone_number, first_name, last_name, balance_json))
+    except Exception as e:
+        print(e)
+        conn.commit()
+        conn.close()
 
     conn.commit()
     conn.close()
@@ -132,7 +136,7 @@ def customers_list():
 
     # Sort the result by the 'first_name' column
     sorted_result = sorted(result, key=lambda x: x[1])  # Assumes 'first_name' is the second column (index 1)
-    result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3], 'comments': i[4]}for i in sorted_result]
+    result_dict = [{'phone': i[0], 'first_name': i[1], 'last_name': i[2], 'balance': i[3], 'comments': (i[4])}for i in sorted_result]
 
     return result_dict
 
@@ -163,6 +167,11 @@ def add_comment(phone_number, comment_text):
     # Fetch existing comments for the customer
     cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
     result = cursor.fetchone()
+
+    if not comment_text:
+        conn.commit()
+        conn.close()
+        raise Exception
 
     if result and result[0] is not None:
         existing_comments = json.loads(result[0])
@@ -243,19 +252,34 @@ def delete_comment(phone_number, index):
         return None
 
 
+def customer_comment_list(phone_number):
 
-def customer_comment_status(phone_number):
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
     # Fetch existing comments for the customer
     cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
-    existing_comments = json.loads(cursor.fetchone()[0]) if cursor.fetchone() else []
+    try:
+        result = json.loads(cursor.fetchone()[0])
+        conn.close()
+
+        return result[::-1]
+    except Exception as e:
+        print(e)
 
     conn.close()
 
-    return len(existing_comments) > 0
-
+def request_bool(phone_number):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
+    try:
+        result = json.loads(cursor.fetchone()[0])
+        conn.close()
+        if result:
+            return True
+    except Exception as e:
+        return False
 
 
 if __name__ == "__main__":
@@ -268,6 +292,6 @@ if __name__ == "__main__":
     print(json.loads(get_name('0505577928')[2])["balance"])
     print(get_balance('0522837081'))
     print(get_balance('0505577928'))"""
-    #for i in customers_list():
-    #    print(i)
-    customer_comment_status("0522837081")
+
+    print(request_bool("33"))
+
