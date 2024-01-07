@@ -269,6 +269,7 @@ def customer_comment_list(phone_number):
 
     conn.close()
 
+
 def request_bool(phone_number):
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()

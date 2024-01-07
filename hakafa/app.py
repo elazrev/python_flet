@@ -72,7 +72,6 @@ def main(page: ft.Page) -> None:
         bgcolor=ft.colors.GREEN_100,
         disabled=False,
         color=ft.colors.WHITE
-
     )
 
     # Manager
@@ -101,6 +100,15 @@ def main(page: ft.Page) -> None:
         text='הכנס לקוח חדש',
         width=200,
         disabled=True
+    )
+    """Client Page View"""
+    comments_list_btn: ElevatedButton = ElevatedButton(
+        text="רשימת בקשות לקוח",
+        width=200,
+        disabled=True
+    )
+    delete_comment_btn: ft.IconButton = ft.IconButton(
+        icon=ft.icons.DELETE_SWEEP
     )
 
     # Validations and actions
@@ -547,7 +555,70 @@ def main(page: ft.Page) -> None:
 
     # Specific Customer view
     def customer_page_view(e: ControlEvent) -> None:
+        if table.request_bool(e.control.data['phone']):
+            comments_list_btn.disabled = False
+            # list of comments for customer
+            try:
+                comments_list = table.customer_comment_list(e.control.data['phone'])
+            except Exception as e:
+                print(e)
+                comments_list = [{}]
+            lst = ft.DataTable(
+                column_spacing=8,
+                divider_thickness=4,
+                columns=[
+                         ft.DataColumn(Text("תוכן")),
+                         ft.DataColumn(Text("תאריך")),
+                         ft.DataColumn(Text("מחק")),
+                ]
+            )
 
+            dlg = ft.AlertDialog(
+                content=Row(
+                    [
+                        lst
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            )
+            comment_index = 0
+            try:
+                for comment in comments_list:
+                    comment_index += 1
+                    text = comment['text']
+                    time = comment['timestamp']
+
+                    lst.rows.append(
+                        ft.DataRow(
+                            cells=[
+                                ft.DataCell(
+                                    Text(
+                                        text
+                                    )
+                                ),
+                                ft.DataCell(
+                                    Text(
+                                        time
+                                    )
+                                ),
+                                ft.DataCell(
+                                        delete_comment_btn
+
+                                ),
+                            ]
+                        )
+                    )
+                    page.update()
+
+            except Exception as e:
+                print(e)
+
+        def open_dlg(e):
+            page.dialog = dlg
+            dlg.open = True
+            page.update()
+
+        comments_list_btn.on_click = open_dlg
         balance = json.loads(e.control.data['balance'])['balance']
         update_date = json.loads(e.control.data['balance'])['update_date']
         done_btn = ft.ElevatedButton(text="סיום",
@@ -607,6 +678,12 @@ def main(page: ft.Page) -> None:
                 alignment=ft.MainAxisAlignment.CENTER
             ),
             Row(
+                [
+                    comments_list_btn
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
+            ),
+            Row(
                 controls=[Text(value=f"יתרה", size=15, color=ft.colors.BLUE_800)],
                 alignment=ft.MainAxisAlignment.CENTER
             ),
@@ -634,16 +711,29 @@ def main(page: ft.Page) -> None:
 
         coins_lst = [-6, -7, -8, -15, -16, -20, -25, -30, -37, -40, -45]
         coins_grid = ft.GridView(
-            expand=1,
-            runs_count=5,
-            max_extent=150,
+            expand=3,
+            runs_count=3,
+            max_extent=60,
             child_aspect_ratio=1.0,
             spacing=5,
-            run_spacing=5,
+            run_spacing=7,
         )
         for coin in coins_lst:
             coins_grid.controls.append(
-                ft.ElevatedButton(text=f"{coin}", data=str(coin), on_click=coins)
+                ft.ElevatedButton(
+                    content=ft.Column(
+                          [
+                              Text(f"{coin}", size=10)
+                          ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                    ),
+                    data=str(coin),
+                    on_long_press=coins,
+                    bgcolor=ft.colors.YELLOW_50,
+                    opacity=75,
+                    tooltip=f"{coin}",
+                    style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=20),
+                )
             )
 
 
@@ -670,6 +760,7 @@ def main(page: ft.Page) -> None:
                 )
             )
         )
+
         done_btn.on_click = done
         page.update()
 
