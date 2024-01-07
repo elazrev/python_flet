@@ -547,6 +547,7 @@ def main(page: ft.Page) -> None:
 
     # Specific Customer view
     def customer_page_view(e: ControlEvent) -> None:
+
         balance = json.loads(e.control.data['balance'])['balance']
         update_date = json.loads(e.control.data['balance'])['update_date']
         done_btn = ft.ElevatedButton(text="סיום",
@@ -562,7 +563,9 @@ def main(page: ft.Page) -> None:
                                     width=100,
                                     color=ft.colors.GREEN if int(balance) >= 0
                                     else ft.colors.RED)
-
+        def coins(e):
+            text_balance.value = str(int(text_balance.value) + int(e.control.data))
+            page.update()
         def minus_click(e):
             text_balance.value = str(int(text_balance.value) - 1)
             page.update()
@@ -627,6 +630,45 @@ def main(page: ft.Page) -> None:
                 ],
                 alignment=ft.MainAxisAlignment.CENTER
             ),
+        )
+
+        coins_lst = [-6, -7, -8, -15, -16, -20, -25, -30, -37, -40, -45]
+        coins_grid = ft.GridView(
+            expand=1,
+            runs_count=5,
+            max_extent=150,
+            child_aspect_ratio=1.0,
+            spacing=5,
+            run_spacing=5,
+        )
+        for coin in coins_lst:
+            coins_grid.controls.append(
+                ft.ElevatedButton(text=f"{coin}", data=str(coin), on_click=coins)
+            )
+
+
+        page.add(
+            ft.Card(
+                content=ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.ListTile(
+                                leading=ft.Icon(ft.icons.PAYMENTS),
+                                title=ft.Text("תשלומים נפוצים"),
+
+                            ),
+                            ft.Row(
+                                [
+                                    coins_grid
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                            ),
+                        ]
+                    ),
+                    width=400,
+                    padding=10,
+                )
+            )
         )
         done_btn.on_click = done
         page.update()
