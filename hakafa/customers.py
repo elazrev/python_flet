@@ -223,33 +223,33 @@ def edit_comment(phone_number, index, new_text):
 
     conn.close()
 
+
 def delete_comment(phone_number, index):
     conn = sqlite3.connect('customer_database.db')
     cursor = conn.cursor()
 
     # Fetch existing comments for the customer
     cursor.execute('SELECT comments FROM customers WHERE phone_number = ?', (phone_number,))
-    existing_comments = json.loads(cursor.fetchone()[0]) if cursor.fetchone() else []
+    try:
+        existing_comments = json.loads(cursor.fetchone()[0])
+    except Exception as e:
+        print(e)
 
     # Check if the index is valid
-    if 0 <= index < len(existing_comments):
-        # Remove the comment at the specified index
-        deleted_comment = existing_comments.pop(index)
 
-        # Update the comments in the database
-        cursor.execute('''
-            UPDATE customers
-            SET comments = ?
-            WHERE phone_number = ?
-        ''', (json.dumps(existing_comments), phone_number))
+    deleted_comment = existing_comments.pop(index)
 
-        conn.commit()
-        conn.close()
+    # Update the comments in the database
+    cursor.execute('''
+        UPDATE customers
+        SET comments = ?
+        WHERE phone_number = ?
+    ''', (json.dumps(existing_comments), phone_number))
 
-        return deleted_comment
-    else:
-        print("Invalid comment index.")
-        return None
+    conn.commit()
+    conn.close()
+
+
 
 
 def customer_comment_list(phone_number):
@@ -263,7 +263,7 @@ def customer_comment_list(phone_number):
         result = json.loads(cursor.fetchone()[0])
         conn.close()
 
-        return result[::-1]
+        return result
     except Exception as e:
         print(e)
 
@@ -294,5 +294,5 @@ if __name__ == "__main__":
     print(get_balance('0522837081'))
     print(get_balance('0505577928'))"""
 
-    print(request_bool("33"))
+    print(customer_comment_list('1')[2])
 
