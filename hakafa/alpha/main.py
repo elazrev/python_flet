@@ -107,9 +107,6 @@ def main(page: ft.Page) -> None:
         width=200,
         disabled=True
     )
-    delete_comment_btn: ft.IconButton = ft.IconButton(
-        icon=ft.icons.DELETE_SWEEP
-    )
 
     # Validations and actions
 
@@ -555,14 +552,18 @@ def main(page: ft.Page) -> None:
 
     # Specific Customer view
     def customer_page_view(e: ControlEvent) -> None:
+        data = e.control.data
+        comments_list_btn.disabled = True
         if table.request_bool(e.control.data['phone']):
             comments_list_btn.disabled = False
+            page.update()
             # list of comments for customer
             try:
                 comments_list = table.customer_comment_list(e.control.data['phone'])
             except Exception as e:
                 print(e)
-                comments_list = [{}]
+                comments_list = []
+
             lst = ft.DataTable(
                 column_spacing=8,
                 divider_thickness=4,
@@ -581,13 +582,25 @@ def main(page: ft.Page) -> None:
                     alignment=ft.MainAxisAlignment.CENTER
                 )
             )
-            comment_index = 0
+
+            comment_index = -1
+            def delete_comment(e):
+                phone = e.control.data[0]
+                index = e.control.data[1]
+                table.delete_comment(phone, index)
+                dlg_close(e)
+                e.control.data = data
+                page.update()
+                customer_page_view(e)
+
+            page.update()
+
+
             try:
                 for comment in comments_list:
                     comment_index += 1
                     text = comment['text']
-                    time = comment['timestamp']
-
+                    time_stamp = comment['timestamp']
                     lst.rows.append(
                         ft.DataRow(
                             cells=[
@@ -598,11 +611,15 @@ def main(page: ft.Page) -> None:
                                 ),
                                 ft.DataCell(
                                     Text(
-                                        time
+                                        time_stamp
                                     )
                                 ),
                                 ft.DataCell(
-                                        delete_comment_btn
+                                    ft.IconButton(
+                                        icon=ft.icons.DELETE_SWEEP,
+                                        data=(e.control.data['phone'], comment_index, text),
+                                        on_click=delete_comment
+                                    )
 
                                 ),
                             ]
@@ -616,6 +633,10 @@ def main(page: ft.Page) -> None:
         def open_dlg(e):
             page.dialog = dlg
             dlg.open = True
+            page.update()
+
+        def dlg_close(e):
+            dlg.open = False
             page.update()
 
         comments_list_btn.on_click = open_dlg
@@ -866,6 +887,9 @@ def main(page: ft.Page) -> None:
 
     # Rendering Login Page
     page.add(
+        ft.SafeArea(
+            
+        
         Row(
             controls=[
                 Column(
@@ -876,9 +900,11 @@ def main(page: ft.Page) -> None:
                 )
             ],
             alignment=ft.MainAxisAlignment.CENTER
+            )
         )
     )
 
+ft.app(main)
 
-if __name__ == "__main__":
-    ft.app(target=main)
+#if __name__ == "__main__":
+#    ft.app(target=main)
