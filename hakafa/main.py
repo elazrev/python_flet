@@ -8,13 +8,10 @@ import json
 
 # The app for management of deaths and customers for Merav!
 def main(page: ft.Page) -> None:
-
-
-
     page.title = 'HaKafa'
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.theme_mode = ft.ThemeMode.SYSTEM
+    page.theme_mode = ft.ThemeMode.LIGHT
     # page.window_width = 410
     # page.window_height = 500
     page.window_resizable = True
@@ -161,16 +158,22 @@ def main(page: ft.Page) -> None:
     def login_page(e: ControlEvent) -> None:
         page.clean()
         page.add(
-            Row(
-                controls=[
-                    Column(
-                        [
-                            text_user_phone_number,
-                            button_submit
-                        ]
+            Column
+            (
+                [
+                    Row(
+                    controls=[
+                        Column(
+                            [
+                                text_user_phone_number,
+                                button_submit
+                            ]
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER
                     )
                 ],
-                alignment=ft.MainAxisAlignment.CENTER
+                alignment=ft.alignment.center
             )
         )
 
@@ -219,7 +222,7 @@ def main(page: ft.Page) -> None:
         else:
             # Client Interface
             if table.get_name(text_user_phone_number.value):
-               #Pull comments by phone number
+                # Pull comments by phone number
                 try:
                     comments_list = table.customer_comment_list(text_user_phone_number.value)
                 except Exception as e:
@@ -229,8 +232,8 @@ def main(page: ft.Page) -> None:
                     column_spacing=8,
                     divider_thickness=4,
                     columns=[
-                             ft.DataColumn(Text("תוכן")),
-                             ft.DataColumn(Text("תאריך")),
+                        ft.DataColumn(Text("תוכן")),
+                        ft.DataColumn(Text("תאריך")),
                     ]
                 )
 
@@ -267,8 +270,6 @@ def main(page: ft.Page) -> None:
 
                 except Exception as e:
                     print(e)
-
-
 
                 def new_comment(e):
                     try:
@@ -472,7 +473,6 @@ def main(page: ft.Page) -> None:
                 )
             )
 
-
         def edit_customer(e):
             pass
 
@@ -529,11 +529,14 @@ def main(page: ft.Page) -> None:
                                 spacing=0,
                                 controls=[
                                     ft.IconButton(
-                                        ft.icons.EMOJI_EMOTIONS_OUTLINED if not table.request_bool(phone) else ft.icons.WARNING_AMBER,
-                                        tooltip="אין בקשות פתוחות" if not table.request_bool(phone) else "יש בקשות פתוחות",
+                                        ft.icons.EMOJI_EMOTIONS_OUTLINED if not table.request_bool(
+                                            phone) else ft.icons.WARNING_AMBER,
+                                        tooltip="אין בקשות פתוחות" if not table.request_bool(
+                                            phone) else "יש בקשות פתוחות",
 
                                         icon_size=12,
-                                        icon_color=ft.colors.GREEN if not table.request_bool(phone) else ft.colors.BROWN_100,
+                                        icon_color=ft.colors.GREEN if not table.request_bool(
+                                            phone) else ft.colors.BROWN_100,
                                         data=customer,
                                     ),
                                     ft.IconButton(
@@ -568,12 +571,13 @@ def main(page: ft.Page) -> None:
                 comments_list = []
 
             lst = ft.DataTable(
-                column_spacing=8,
+                column_spacing=2,
                 divider_thickness=4,
+
                 columns=[
-                         ft.DataColumn(Text("תוכן")),
-                         ft.DataColumn(Text("תאריך")),
-                         ft.DataColumn(Text("מחק")),
+                    ft.DataColumn(Text("תוכן")),
+                    ft.DataColumn(Text("תאריך")),
+                    ft.DataColumn(Text("מחק")),
                 ]
             )
 
@@ -587,6 +591,7 @@ def main(page: ft.Page) -> None:
             )
 
             comment_index = -1
+
             def delete_comment(e):
                 phone = e.control.data[0]
                 index = e.control.data[1]
@@ -597,7 +602,6 @@ def main(page: ft.Page) -> None:
                 customer_page_view(e)
 
             page.update()
-
 
             try:
                 for comment in comments_list:
@@ -658,9 +662,11 @@ def main(page: ft.Page) -> None:
                                     width=100,
                                     color=ft.colors.GREEN if int(balance) >= 0
                                     else ft.colors.RED)
+
         def coins(e):
             text_balance.value = str(int(text_balance.value) + int(e.control.data))
             page.update()
+
         def minus_click(e):
             text_balance.value = str(int(text_balance.value) - 1)
             page.update()
@@ -746,9 +752,9 @@ def main(page: ft.Page) -> None:
             coins_grid.controls.append(
                 ft.ElevatedButton(
                     content=ft.Column(
-                          [
-                              Text(f"{coin}", size=10)
-                          ],
+                        [
+                            Text(f"{coin}", size=10)
+                        ],
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     data=str(coin),
@@ -759,7 +765,6 @@ def main(page: ft.Page) -> None:
                     style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=20),
                 )
             )
-
 
         page.add(
             ft.Card(
@@ -905,4 +910,4 @@ def main(page: ft.Page) -> None:
 
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.app(target=main, )
