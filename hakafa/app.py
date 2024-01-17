@@ -19,6 +19,7 @@ def main(page: ft.Page) -> None:
     page.rtl = True
     page.snack_bar = ft.SnackBar(content=Text('ערב טוב'), action="סבבה")
 
+
     # Setup buttons and fields
     """navbar buttons"""
     home_button: ft.IconButton = ft.IconButton(
@@ -856,7 +857,7 @@ def main(page: ft.Page) -> None:
                                items=[
                                    ft.PopupMenuItem(),
                                    ft.PopupMenuItem(text="אודותינו"),
-                                   ft.PopupMenuItem(),  # divider
+                                   ft.PopupMenuItem(text="עדכון גרסה"),  # divider
 
                                ],
 

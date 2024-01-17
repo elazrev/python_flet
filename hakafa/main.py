@@ -1,5 +1,5 @@
 import flet as ft
-from flet import TextField, Checkbox, ElevatedButton, TextButton, Text, Row, Column
+from flet import TextField, ElevatedButton, TextButton, Text, Row, Column
 from flet_core.control_event import ControlEvent
 import customers as table
 import time
@@ -8,9 +8,6 @@ import json
 
 # The app for management of deaths and customers for Merav!
 def main(page: ft.Page) -> None:
-
-
-
     page.title = 'HaKafa'
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -159,6 +156,7 @@ def main(page: ft.Page) -> None:
 
     # Login Page:
     def login_page(e: ControlEvent) -> None:
+        page.route = '/login'
         page.clean()
         page.add(
             Row(
@@ -176,6 +174,7 @@ def main(page: ft.Page) -> None:
 
     # Welcome_Page
     def home_page(e: ControlEvent) -> None:
+        page.route = '/home'
         page.clean()
         home_button.disabled = False
         home_button.icon_color = ft.colors.CYAN_ACCENT
@@ -219,7 +218,7 @@ def main(page: ft.Page) -> None:
         else:
             # Client Interface
             if table.get_name(text_user_phone_number.value):
-               #Pull comments by phone number
+                # Pull comments by phone number
                 try:
                     comments_list = table.customer_comment_list(text_user_phone_number.value)
                 except Exception as e:
@@ -229,8 +228,8 @@ def main(page: ft.Page) -> None:
                     column_spacing=8,
                     divider_thickness=4,
                     columns=[
-                             ft.DataColumn(Text("תוכן")),
-                             ft.DataColumn(Text("תאריך")),
+                        ft.DataColumn(Text("תוכן")),
+                        ft.DataColumn(Text("תאריך")),
                     ]
                 )
 
@@ -268,18 +267,16 @@ def main(page: ft.Page) -> None:
                 except Exception as e:
                     print(e)
 
-
-
                 def new_comment(e):
                     try:
                         submit_request_btn.data = text_new_request.value
                         comment_text = e.control.data
-                        print(comment_text)
+
                         table.add_comment(
                             phone_number=text_user_phone_number.value,
                             comment_text=comment_text
                         )
-                        print('done')
+
                         page.snack_bar.content = Text('נוסף בהצלחה')
                         page.snack_bar.open = True
                         page.update()
@@ -385,9 +382,73 @@ def main(page: ft.Page) -> None:
                 )
                 page.update()
             else:
+
+                main_button.visible = True
+
+                def new_customer_request_view(e: ControlEvent) -> None:
+                    page.route = "/new_request"
+
+                    def successes_req(e) -> None:
+                        try:
+                            import time
+                            table.add_new_request(
+                                add_client_phone_number.value,
+                                add_client_first_name.value,
+                                add_client_last_name.value
+                            )
+                            page.clean()
+                            page.add(
+                                Row(
+                                    [
+                                    ],
+                                    alignment=ft.MainAxisAlignment.END
+                                ),
+                                Row(
+                                    controls=[
+                                        Column(
+                                            [Text(value=f'נוסף בהצלחה!\n{add_client_first_name.value}')],
+                                            alignment=ft.MainAxisAlignment.CENTER
+                                        )
+                                    ], alignment=ft.MainAxisAlignment.CENTER
+                                )
+                            )
+
+                            time.sleep(2)
+                            login_page(e)
+
+                        except Exception as e:
+                            #raise e
+                            print(e)
+                            add_client_phone_number.value = None
+                            page.snack_bar = ft.SnackBar(content=Text('something went wrong'), action="OK", open=True)
+                            page.update()
+
+                    submit_add_btn.on_click = successes_req
+                    page.clean()
+                    page.add(
+                        Row(
+                            [
+                            ],
+                            alignment=ft.MainAxisAlignment.END
+                        ),
+                        Row(
+                            controls=[
+                                Column(
+                                    [
+                                        add_client_first_name,
+                                        add_client_last_name,
+                                        add_client_phone_number,
+                                        submit_add_btn
+                                    ]
+                                )
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER
+                        )
+                    )
+                    page.update()
+
                 home_button.visible = False
                 home_button.disabled = True
-                main_button.visible = False
                 main_button.disabled = True
                 page.add(
                     ft.Card(
@@ -413,6 +474,16 @@ def main(page: ft.Page) -> None:
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,
                                     ),
+                                    ft.Row(
+                                        [
+                                            ft.ElevatedButton(
+                                                "להרשמה",
+                                                on_click=new_customer_request_view
+                                            )
+                                            # request_list_dialog,
+                                        ],
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                    ),
                                 ]
                             ),
                             width=400,
@@ -424,6 +495,7 @@ def main(page: ft.Page) -> None:
 
     # Customers List
     def customers_list_view(e: ControlEvent) -> None:
+        page.route = '/list_view'
 
         def delete_customer(e):
             try:
@@ -437,7 +509,7 @@ def main(page: ft.Page) -> None:
                 page.update()
                 customers_list_view(e)
 
-        def delete_page(e) -> None:
+        def delete_page_view(e) -> None:
             page.clean()
             page.add(
                 Row(
@@ -471,7 +543,6 @@ def main(page: ft.Page) -> None:
                     ], alignment=ft.MainAxisAlignment.CENTER
                 )
             )
-
 
         def edit_customer(e):
             pass
@@ -529,17 +600,20 @@ def main(page: ft.Page) -> None:
                                 spacing=0,
                                 controls=[
                                     ft.IconButton(
-                                        ft.icons.EMOJI_EMOTIONS_OUTLINED if not table.request_bool(phone) else ft.icons.WARNING_AMBER,
-                                        tooltip="אין בקשות פתוחות" if not table.request_bool(phone) else "יש בקשות פתוחות",
+                                        ft.icons.EMOJI_EMOTIONS_OUTLINED if not table.request_bool(
+                                            phone) else ft.icons.WARNING_AMBER,
+                                        tooltip="אין בקשות פתוחות" if not table.request_bool(
+                                            phone) else "יש בקשות פתוחות",
 
                                         icon_size=12,
-                                        icon_color=ft.colors.GREEN if not table.request_bool(phone) else ft.colors.BROWN_100,
+                                        icon_color=ft.colors.GREEN if not table.request_bool(
+                                            phone) else ft.colors.BROWN_100,
                                         data=customer,
                                     ),
                                     ft.IconButton(
                                         ft.icons.DELETE_OUTLINE,
                                         tooltip="מחק",
-                                        on_click=delete_page,
+                                        on_click=delete_page_view,
                                         icon_size=12,
                                         icon_color=ft.colors.RED_200,
                                         data=customer,
@@ -557,6 +631,27 @@ def main(page: ft.Page) -> None:
     def customer_page_view(e: ControlEvent) -> None:
         data = e.control.data
         comments_list_btn.disabled = True
+
+        lst = ft.DataTable(
+            column_spacing=5,
+            divider_thickness=2,
+            horizontal_lines=ft.BorderSide(width=3),
+            columns=[
+                ft.DataColumn(Text("תוכן")),
+                ft.DataColumn(Text("תאריך")),
+                ft.DataColumn(Text("מחק")),
+            ]
+        )
+
+        dlg = ft.AlertDialog(
+            content=Row(
+                [
+                    lst
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                width=250,
+            )
+        )
         if table.request_bool(e.control.data['phone']):
             comments_list_btn.disabled = False
             page.update()
@@ -567,37 +662,24 @@ def main(page: ft.Page) -> None:
                 print(e)
                 comments_list = []
 
-            lst = ft.DataTable(
-                column_spacing=8,
-                divider_thickness=4,
-                columns=[
-                         ft.DataColumn(Text("תוכן")),
-                         ft.DataColumn(Text("תאריך")),
-                         ft.DataColumn(Text("מחק")),
-                ]
-            )
-
-            dlg = ft.AlertDialog(
-                content=Row(
-                    [
-                        lst
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER
-                )
-            )
-
+            dlg.open = False
             comment_index = -1
+
+            def dlg_close(e):
+                page.dialog = dlg
+                dlg.open = False
+                page.update()
+
             def delete_comment(e):
                 phone = e.control.data[0]
                 index = e.control.data[1]
                 table.delete_comment(phone, index)
-                dlg_close(e)
                 e.control.data = data
+                dlg_close(e)
                 page.update()
                 customer_page_view(e)
 
             page.update()
-
 
             try:
                 for comment in comments_list:
@@ -609,12 +691,15 @@ def main(page: ft.Page) -> None:
                             cells=[
                                 ft.DataCell(
                                     Text(
-                                        text
+                                        text,
+                                        size=10
                                     )
                                 ),
                                 ft.DataCell(
                                     Text(
-                                        time_stamp
+                                        time_stamp,
+                                        size=9,
+                                        color=ft.colors.GREY
                                     )
                                 ),
                                 ft.DataCell(
@@ -631,15 +716,15 @@ def main(page: ft.Page) -> None:
                     page.update()
 
             except Exception as e:
+
                 print(e)
+
+        else:
+            dlg.open = False
 
         def open_dlg(e):
             page.dialog = dlg
             dlg.open = True
-            page.update()
-
-        def dlg_close(e):
-            dlg.open = False
             page.update()
 
         comments_list_btn.on_click = open_dlg
@@ -658,9 +743,11 @@ def main(page: ft.Page) -> None:
                                     width=100,
                                     color=ft.colors.GREEN if int(balance) >= 0
                                     else ft.colors.RED)
+
         def coins(e):
             text_balance.value = str(int(text_balance.value) + int(e.control.data))
             page.update()
+
         def minus_click(e):
             text_balance.value = str(int(text_balance.value) - 1)
             page.update()
@@ -735,20 +822,20 @@ def main(page: ft.Page) -> None:
 
         coins_lst = [-6, -7, -8, -15, -16, -20, -25, -30, -37, -40, -45]
         coins_grid = ft.GridView(
-            expand=3,
+            expand=5,
             runs_count=3,
             max_extent=60,
-            child_aspect_ratio=1.0,
-            spacing=5,
-            run_spacing=7,
+            child_aspect_ratio=0.6,
+            spacing=2,
+            run_spacing=4,
         )
         for coin in coins_lst:
             coins_grid.controls.append(
                 ft.ElevatedButton(
                     content=ft.Column(
-                          [
-                              Text(f"{coin}", size=10)
-                          ],
+                        [
+                            Text(f"{coin}", size=9)
+                        ],
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     data=str(coin),
@@ -759,7 +846,6 @@ def main(page: ft.Page) -> None:
                     style=ft.ButtonStyle(shape=ft.CircleBorder(), padding=20),
                 )
             )
-
 
         page.add(
             ft.Card(
@@ -784,12 +870,14 @@ def main(page: ft.Page) -> None:
                 )
             )
         )
+        page.route = f'/customer/{e.control.data["first_name"]}'
 
         done_btn.on_click = done
         page.update()
 
     # New Customer
     def new_customer_view(e: ControlEvent) -> None:
+        page.route = "/new_customer"
 
         def successes(e) -> None:
             try:
@@ -847,6 +935,100 @@ def main(page: ft.Page) -> None:
         page.update()
 
     def unfinished_requests_view(e: ControlEvent) -> None:
+        page.route = "/requests"
+        requests_list = table.get_requests_list()
+
+        def delete_click(e):
+            try:
+                phone = e.control.data['phone']
+                table.delete_request(phone)
+                page.update()
+                page.snack_bar.content = Text('נמחק בהצלחה!')
+                page.snack_bar.open = True
+                page.update()
+                unfinished_requests_view(e)
+            except Exception as e:
+                print(e)
+
+
+        def save_click(e):
+            try:
+                phone = e.control.data["phone"]
+                first_name = e.control.data["first_name"]
+                last_name = e.control.data["last_name"]
+                table.add_customer(phone, first_name, last_name)
+                table.delete_request(phone)
+                page.snack_bar.content = Text(f"{first_name} נוסף בהצלחה!!")
+                page.snack_bar.open = True
+                customers_list_view(e)
+            except Exception as e:
+                print(e)
+
+        page.clean()
+        page.add(
+            Row(
+                [ft.Text(value="רשימת בקשות", size=20)],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+        )
+
+        r = ft.DataTable(
+            column_spacing=9,
+            divider_thickness=2,
+            columns=[
+                ft.DataColumn(ft.Text("שם פרטי")),
+                ft.DataColumn(ft.Text("שם משפחה")),
+                ft.DataColumn(ft.Text("טלפון")),
+                ft.DataColumn(ft.Text("אשר | מחק")),
+            ],
+        )
+
+        page.add(Row([r], alignment=ft.MainAxisAlignment.CENTER))
+
+        for customer in requests_list:
+            phone = customer['phone']
+
+            r.rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(
+                            ft.TextButton(
+                                customer['first_name'],
+                                data=customer,
+                                on_click=customer_page_view)),
+                        ft.DataCell(ft.Text(customer['last_name'])),
+                        ft.DataCell(ft.Text(customer['phone'])),
+                        ft.DataCell(
+                            Row(
+                                spacing=0,
+                                controls=[
+                                    ft.IconButton(
+                                        ft.icons.DATA_SAVER_ON_ROUNDED,
+                                        tooltip="שמור",
+                                        icon_size=15,
+                                        icon_color=ft.colors.GREEN_500,
+                                        data=customer,
+                                        on_click=save_click
+                                    ),
+                                    ft.IconButton(
+                                        ft.icons.DELETE_OUTLINE,
+                                        tooltip="מחק",
+                                        icon_size=15,
+                                        icon_color=ft.colors.RED_200,
+                                        data=customer,
+                                        on_click=delete_click
+                                    ),
+                                ]
+                            )
+                        ),
+                    ]
+                )
+            )
+            page.update()
+        page.update()
+
+    def route_change(route):
+        # print(f"New route: {route}")
         pass
 
     # Buttons functionality management
@@ -860,11 +1042,14 @@ def main(page: ft.Page) -> None:
 
     """Manager views buttons and fields"""
     list_customers_btn.on_click = customers_list_view
-
+    manager_request_list.on_click = unfinished_requests_view
     add_customer_btn.on_click = new_customer_view
     add_client_first_name.on_change = add_user_validate
     add_client_last_name.on_change = add_user_validate
     add_client_phone_number.on_change = add_user_validate
+
+    page.on_route_change = route_change
+
 
     # NavBar
     page.appbar = ft.AppBar(
@@ -904,5 +1089,6 @@ def main(page: ft.Page) -> None:
     )
 
 
-if __name__ == "__main__":
-    ft.app(target=main)
+ft.app(main)  # view=ft.AppView.WEB_BROWSER)
+# if __name__ == "__main__":
+#   ft.app(target=main)

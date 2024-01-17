@@ -1,10 +1,11 @@
 import sqlite3
 import json
 from datetime import datetime
+from sqlite3 import Cursor
 
 # Function to create the 'customers' table
 conn = sqlite3.connect('customer_database.db')
-cursor = conn.cursor()
+cursor: Cursor = conn.cursor()
 
 # Creating the 'customers' table
 cursor.execute('''
@@ -14,6 +15,15 @@ cursor.execute('''
         last_name TEXT,
         balance JSON,
         comments JSON 
+    )
+''')
+conn.commit()
+
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS requests (
+        phone_number TEXT PRIMARY KEY,
+        first_name TEXT,
+        last_name TEXT
     )
 ''')
 
@@ -283,6 +293,54 @@ def request_bool(phone_number):
         return False
 
 
+def add_new_request(phone_number, first_name, last_name,):
+
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO requests (phone_number, first_name, last_name)
+            VALUES (?, ?, ?)
+        ''', (phone_number, first_name, last_name,))
+    except Exception as e:
+        print(e)
+        conn.commit()
+        conn.close()
+
+    conn.commit()
+    conn.close()
+
+def get_requests_list():
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT * FROM requests
+        """)
+        result = list(cursor.fetchall())
+        if result:
+            res_dict = [{"phone": i[0], "first_name": i[1], "last_name": i[2]} for i in result]
+            return res_dict
+        else:
+            return []
+
+    except Exception as e:
+        print(e)
+        conn.commit()
+
+
+    conn.close()
+
+
+def delete_request(phone_number):
+    conn = sqlite3.connect('customer_database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('DELETE FROM requests WHERE phone_number = ?', (phone_number,))
+
+    conn.commit()
+    conn.close()
+
 if __name__ == "__main__":
     #add_customer("0522837081", "Elazar", "Revach")
     #add_customer("0505577928", "Rami", "Revach")
@@ -294,5 +352,6 @@ if __name__ == "__main__":
     print(get_balance('0522837081'))
     print(get_balance('0505577928'))"""
 
-    print(customer_comment_list('1')[2])
+
+    print(get_requests_list())
 
