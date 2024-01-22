@@ -422,7 +422,8 @@ def main(page: ft.Page) -> None:
                             add_client_phone_number.value = None
                             page.snack_bar = ft.SnackBar(content=Text('something went wrong'), action="OK", open=True)
                             page.update()
-
+                    main_button.disabled = False
+                    submit_add_btn.text = "בקשה חדשה"
                     submit_add_btn.on_click = successes_req
                     page.clean()
                     page.add(
@@ -878,6 +879,7 @@ def main(page: ft.Page) -> None:
     # New Customer
     def new_customer_view(e: ControlEvent) -> None:
         page.route = "/new_customer"
+        submit_add_btn.text = "הכנס לקוח חדש"
 
         def successes(e) -> None:
             try:
@@ -1053,19 +1055,19 @@ def main(page: ft.Page) -> None:
 
     # NavBar
     page.appbar = ft.AppBar(
-        leading=home_button,
+        leading=main_button,
         leading_width=40,
         title=ft.Text(f"הקפה בקפה "),
         center_title=False,
         bgcolor=ft.colors.SURFACE_VARIANT,
         actions=[
             list_button,
-            main_button,
+            home_button,
             ft.PopupMenuButton(icon=ft.icons.COFFEE_SHARP,
                                items=[
                                    ft.PopupMenuItem(),
                                    ft.PopupMenuItem(text="אודותינו"),
-                                   ft.PopupMenuItem(),  # divider
+                                   ft.PopupMenuItem(text="Update check"),  # divider
 
                                ],
 
