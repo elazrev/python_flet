@@ -5,13 +5,12 @@ import customers as table
 import time
 import json
 
-
 # The app for management of deaths and customers for Merav!
 def main(page: ft.Page) -> None:
     page.title = 'HaKafa'
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.theme_mode = ft.ThemeMode.SYSTEM
+    page.theme_mode = ft.ThemeMode.LIGHT
     # page.window_width = 410
     # page.window_height = 500
     page.window_resizable = True
@@ -549,9 +548,21 @@ def main(page: ft.Page) -> None:
             pass
 
         search_bar = TextField(label='חיפוש', text_size=13)
-
         customer_lst = table.customers_list()
 
+        def search_customer(e) -> list:
+            print(search_bar.value)
+            new_table = table.search_customers(search_bar.value)
+            print(new_table)
+            return new_table
+
+        search_bar.on_change = search_customer
+        if search_bar.value:
+            customer_lst = search_customer(e)
+            customers_list_view(e)
+            page.update()
+
+        page.update()
         page.clean()
         page.add(
             Row(
