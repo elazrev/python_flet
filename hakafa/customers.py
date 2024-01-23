@@ -294,5 +294,5 @@ if __name__ == "__main__":
     print(get_balance('0522837081'))
     print(get_balance('0505577928'))"""
 
-    print(customer_comment_list('1')[2])
+    print(search_customer_partial("r"))
 
